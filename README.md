@@ -17,6 +17,12 @@ FlatBag makes use of the Flathub online API in order to fetch updated data.
 * **App Details:** View rich information, screenshots, and release notes powered by Flathub data.
 * **Background Tasks:** Queue multiple operations (installations, updates, uninstalls) and track their progress via the built-in process manager.
 
+## Screenshots
+
+![Installed Apps Icons](screenshots/flatbag_installed_apps_icons_view.png)
+![Remote Apps Grid](screenshots/flatbag_remote_apps_grid_view.png)
+![Remote Apps Icons Dark](screenshots/flatbag_remote_apps_icons_view_dark.png)
+
 ## Requirements
 
 To build and run FlatBag, you will need:
