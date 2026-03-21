@@ -19,9 +19,9 @@ FlatBag makes use of the Flathub online API in order to fetch updated data.
 
 ## Screenshots
 
-![Installed Apps Icons](screenshots/flatbag_installed_apps_icons_view.png)
-![Remote Apps Grid](screenshots/flatbag_remote_apps_grid_view.png)
-![Remote Apps Icons Dark](screenshots/flatbag_remote_apps_icons_view_dark.png)
+<img src="screenshots/flatbag_installed_apps_icons_view.png" width="500" alt="Installed Apps Icons">
+<img src="screenshots/flatbag_remote_apps_grid_view.png" width="500" alt="Remote Apps Grid">
+<img src="screenshots/flatbag_remote_apps_icons_view_dark.png" width="500" alt="Remote Apps Icons Dark">
 
 ## Requirements
 
