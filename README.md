@@ -43,11 +43,23 @@ To build and run FlatBag, you will need:
    flutter pub get
    ```
 
-3. Build the release executable for Linux:
+3. Build the release executable for Linux using the provided script:
    ```bash
-   flutter build linux --release
+       # Make scripts executable
+       chmod +x build.sh install.sh
+       
+       # Standard build
+       ./build.sh
+       
+       # Build and create binary/source release archives (saved in release/ folder)
+       ./build.sh --binary --source
    ```
-   *Once compiled, the executable and required bundle files will be located at `build/linux/x64/release/bundle/`.*
+
+4. Install the application system-wide:
+       ```bash
+       sudo ./install.sh
+       ```
+       *If you prefer to run it without installation, the compiled executable and required bundle files are located at `build/linux/x64/release/bundle/`.*
 
 ## Workflow Resources
 

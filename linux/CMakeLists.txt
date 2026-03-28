@@ -7,7 +7,7 @@ project(runner LANGUAGES CXX)
 set(BINARY_NAME "flatbag")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.example.flatbag")
+set(APPLICATION_ID "io.github.undarbiko.flatbag")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -126,3 +126,43 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
+
+# === Application Icon Installation ===
+# Installs application icons for the desktop environment.
+#
+# 1. Create a directory at 'linux/runner/resources'.
+# 2. Place your application icon files inside it (e.g., 'flat_bag_256.png').
+#    Using multiple sizes (e.g., 64, 128, 256, 512) is recommended.
+foreach(size 32 64 128 256 512)
+  install(
+    FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/flat_bag_${size}.png"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/${size}x${size}/apps"
+    RENAME "${APPLICATION_ID}.png"
+    COMPONENT Runtime
+    OPTIONAL # Makes the build not fail if an icon size is missing
+  )
+endforeach()
+
+# Install the scalable SVG icon.
+install(
+  FILES
+  "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/flat_bag.svg"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps"
+  RENAME "${APPLICATION_ID}.svg"
+  COMPONENT Runtime
+  OPTIONAL # Makes the build not fail if the icon is missing
+)
+
+# === Desktop File Installation ===
+# Installs the .desktop file for the application. This is necessary for it to
+# appear in the desktop environment's application launcher.
+#
+# 1. Create a file named '${APPLICATION_ID}.desktop' in 'linux/runner/resources'.
+# 2. Make sure the 'Exec' and 'Icon' keys are set correctly.
+install(
+  FILES
+  "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/${APPLICATION_ID}.desktop"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
+  COMPONENT Runtime
+)

@@ -27,6 +27,7 @@ void main() async {
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
+    await windowManager.setIcon('icons/flat_bag_128.png');
     await windowManager.setMinimumSize(Size(900 + (settings.textScale - 1.0) * 300, 650 + (settings.textScale - 1.0) * 300));
   });
 

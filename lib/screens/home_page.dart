@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/flatpak_app.dart';
 import '../models/flatpak_remote_app.dart';
 import '../state/home_state.dart';
-import '../screens/app_icon.dart';
 import 'installed_actions_panel.dart';
 import '../screens/installed_apps_view.dart';
 import '../screens/installed_apps_toolbar.dart';
@@ -77,7 +77,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 height: 40,
                 alignment: Alignment.centerLeft,
                 padding: const EdgeInsets.only(left: 16.0),
-                child: const Text('FlatBag', style: TextStyle(fontSize: 15)),
+                child: Row(
+                  children: [
+                    SvgPicture.asset('icons/flat_bag.svg', width: 32, height: 32),
+                    const SizedBox(width: 10),
+                    const Text('FlatBag', style: TextStyle(fontSize: 15)),
+                  ],
+                ),
               ),
             ),
 
@@ -332,6 +338,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     _state.uninstallApp(app.name, app.application, app.installation);
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Uninstalling ${app.name} in the background.')));
   }
 
@@ -339,7 +346,7 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('About FlatBag'),
+        title: Row(children: [SvgPicture.asset('icons/flat_bag.svg', width: 40, height: 40), const SizedBox(width: 16), const Text('About FlatBag')]),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
