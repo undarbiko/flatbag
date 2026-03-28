@@ -18,6 +18,9 @@ fi
 
 echo "==> Installing FlatBag to $INSTALL_DIR..."
 
+# Remove previous installation to avoid stale files
+rm -rf "$INSTALL_DIR"
+
 # Create installation directory and copy core app files
 mkdir -p "$INSTALL_DIR"
 cp -r "$BUNDLE_DIR/flatbag" "$INSTALL_DIR/"
