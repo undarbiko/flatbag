@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=FlatBag
+Comment=A graphical interface for managing Flatpak applications on Linux.
+Exec=flatbag
+Icon=io.github.undarbiko.flatbag
+Type=Application
+Categories=System;Utility;
