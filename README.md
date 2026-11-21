@@ -46,7 +46,7 @@ To build and run FlatBag, you will need:
 3. Build the release executable for Linux using the provided script:
    ```bash
        # Make scripts executable
-       chmod +x build.sh install.sh
+       chmod +x build.sh install.sh uninstall.sh
        
        # Standard build
        ./build.sh
@@ -60,6 +60,21 @@ To build and run FlatBag, you will need:
        sudo ./install.sh
        ```
        *If you prefer to run it without installation, the compiled executable and required bundle files are located at `build/linux/x64/release/bundle/`.*
+
+## Uninstallation
+
+Running `./uninstall.sh` with no arguments prints usage information. Available modes:
+
+```bash
+# Remove only the system-wide application files
+sudo ./uninstall.sh --binary-only
+
+# Remove only the current user's configuration and cache (~/.config/flatbag and ~/.cache/flatbag)
+./uninstall.sh --data-only
+
+# Remove both system-wide application files and user configuration/cache
+sudo ./uninstall.sh --all
+```
 
 ## Workflow Resources
 
