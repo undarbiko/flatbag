@@ -57,7 +57,12 @@ class MyApp extends StatelessWidget {
                     ),
                   ),
                   extensions: const [
-                    SemanticColors(successButton: Color(0xFF7AE190), infoButton: Color(0xFF86B0FF), warningButton: Color(0xFFFF994A)),
+                    SemanticColors(
+                      successButton: Color(0xFF7AE190),
+                      infoButton: Color(0xFF86B0FF),
+                      warningButton: Color(0xFFFF994A),
+                      installedItemTint: Color(0x1F4CAF50),
+                    ),
                   ],
                 );
                 ThemeData defaultDark = ThemeData(
@@ -75,6 +80,7 @@ class MyApp extends StatelessWidget {
                       successButton: Color(0xFF5BAA6C),
                       infoButton: Color(0xFF6586C2),
                       warningButton: Color(0xFFCC7B3A),
+                      installedItemTint: Color(0x245BAA6C),
                     ),
                   ],
                 );
@@ -140,15 +146,27 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
   final Color successButton;
   final Color infoButton;
   final Color warningButton;
+  final Color installedItemTint;
 
-  const SemanticColors({required this.successButton, required this.infoButton, required this.warningButton});
+  const SemanticColors({
+    required this.successButton,
+    required this.infoButton,
+    required this.warningButton,
+    required this.installedItemTint,
+  });
 
   @override
-  ThemeExtension<SemanticColors> copyWith({Color? successButton, Color? infoButton, Color? warningButton}) {
+  ThemeExtension<SemanticColors> copyWith({
+    Color? successButton,
+    Color? infoButton,
+    Color? warningButton,
+    Color? installedItemTint,
+  }) {
     return SemanticColors(
       successButton: successButton ?? this.successButton,
       infoButton: infoButton ?? this.infoButton,
       warningButton: warningButton ?? this.warningButton,
+      installedItemTint: installedItemTint ?? this.installedItemTint,
     );
   }
 
@@ -159,6 +177,7 @@ class SemanticColors extends ThemeExtension<SemanticColors> {
       successButton: Color.lerp(successButton, other.successButton, t)!,
       infoButton: Color.lerp(infoButton, other.infoButton, t)!,
       warningButton: Color.lerp(warningButton, other.warningButton, t)!,
+      installedItemTint: Color.lerp(installedItemTint, other.installedItemTint, t)!,
     );
   }
 }
