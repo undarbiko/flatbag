@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../main.dart'; // Import to access SemanticColors
 import '../state/home_state.dart';
 
 /// The main view responsible for rendering the list, grid, or icon layout of remote applications.
@@ -46,6 +47,30 @@ String? _formatReleaseDate(DateTime? date) {
   return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 }
 
+/// Resolves the opaque item background color for selected, installed, and default states.
+/// Blending opaquely over the theme's base surface prevents card elevation shadows from bleeding through.
+Color? _resolveItemBackgroundColor(
+  BuildContext context, {
+  required bool isSelected,
+  required bool isInstalled,
+  required bool isCard,
+}) {
+  final theme = Theme.of(context);
+  final colorScheme = theme.colorScheme;
+  if (isSelected) {
+    return colorScheme.primaryContainer;
+  }
+  if (!isInstalled) {
+    return null;
+  }
+
+  final tint =
+      theme.extension<SemanticColors>()?.installedItemTint ??
+      (theme.brightness == Brightness.dark ? const Color(0x245BAA6C) : const Color(0x1F4CAF50));
+  final baseColor = isCard ? (theme.cardTheme.color ?? colorScheme.surfaceContainerLow) : theme.scaffoldBackgroundColor;
+  return Color.alphaBlend(tint, baseColor);
+}
+
 /// Renders remote applications as a vertical list of tiles.
 class _RemoteListView extends StatelessWidget {
   const _RemoteListView({required this.state});
@@ -67,7 +92,7 @@ class _RemoteListView extends StatelessWidget {
         final String? version = app.currentReleaseVersion;
 
         return Card(
-          color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
+          color: _resolveItemBackgroundColor(context, isSelected: isSelected, isInstalled: app.isInstalled, isCard: true),
           margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
@@ -176,15 +201,22 @@ class _RemoteIconsView extends StatelessWidget {
         final isSelected = state.selectedAppId == app.flatpakAppId;
         final String? version = app.currentReleaseVersion;
 
+        final backgroundColor = _resolveItemBackgroundColor(
+          context,
+          isSelected: isSelected,
+          isInstalled: app.isInstalled,
+          isCard: false,
+        );
+
         return InkWell(
           onTap: () => state.selectApp(isSelected ? null : app.flatpakAppId),
           borderRadius: BorderRadius.circular(8.0),
-          child: Container(
-            decoration: isSelected
+          child: Ink(
+            decoration: backgroundColor != null
                 ? BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
+                    color: backgroundColor,
                     borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: Theme.of(context).colorScheme.primary, width: 1.0),
+                    border: isSelected ? Border.all(color: Theme.of(context).colorScheme.primary, width: 1.0) : null,
                   )
                 : null,
             child: Stack(
@@ -297,7 +329,7 @@ class _RemoteGridView extends StatelessWidget {
 
         return Card(
           elevation: isSelected ? 4 : 1,
-          color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
+          color: _resolveItemBackgroundColor(context, isSelected: isSelected, isInstalled: app.isInstalled, isCard: true),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
             side: isSelected
