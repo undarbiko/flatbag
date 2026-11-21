@@ -19,6 +19,7 @@ class AppTheme {
 class AppSettings {
   bool persistWindowSize;
   bool autoCheckUpdates;
+  bool doubleClickMainAction;
   String defaultInstallScope;
   String themeMode;
   int accentColor;
@@ -46,6 +47,7 @@ class AppSettings {
   AppSettings({
     this.persistWindowSize = true,
     this.autoCheckUpdates = true,
+    this.doubleClickMainAction = true,
     this.defaultInstallScope = 'ask',
     this.themeMode = 'system',
     this.accentColor = 0xFF9BA2FF,
@@ -74,6 +76,7 @@ class AppSettings {
   Map<String, dynamic> toJson() => {
     'persistWindowSize': persistWindowSize,
     'autoCheckUpdates': autoCheckUpdates,
+    'doubleClickMainAction': doubleClickMainAction,
     'defaultInstallScope': defaultInstallScope,
     'themeMode': themeMode,
     'accentColor': accentColor,
@@ -103,6 +106,7 @@ class AppSettings {
     return AppSettings(
       persistWindowSize: json['persistWindowSize'] ?? true,
       autoCheckUpdates: json['autoCheckUpdates'] ?? true,
+      doubleClickMainAction: json['doubleClickMainAction'] ?? true,
       defaultInstallScope: json['defaultInstallScope'] ?? 'ask',
       themeMode: json['themeMode'] ?? 'system',
       accentColor: json['accentColor'] ?? 0xFF9BA2FF,
