@@ -22,12 +22,13 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-echo "==> Building FlatBag for Linux (Release)..."
-flutter build linux --release
-
 # Extract version and build numbers from pubspec.yaml
 VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d '+' -f 1)
 BUILD=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d '+' -f 2)
+
+echo "==> Building FlatBag ${VERSION}+${BUILD} for Linux (Release)..."
+flutter build linux --release --dart-define="APP_VERSION=${VERSION}"
+
 APP_NAME="flatbag"
 PKG_NAME="${APP_NAME}-${VERSION}-${BUILD}-linux-x86_64"
 

@@ -369,6 +369,8 @@ class _MyHomePageState extends State<MyHomePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Uninstalling ${app.name} in the background.')));
   }
 
+  static const String _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '1.1.0');
+
   void _showAboutDialog() {
     showDialog(
       context: context,
@@ -378,7 +380,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Version 1.0.0', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('Version $_appVersion', style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
             Text('A graphical interface for managing Flatpak applications on Linux.'),
             SizedBox(height: 16),
