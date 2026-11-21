@@ -12,6 +12,14 @@ import '../services/flatpak_service.dart';
 
 enum AppView { messages, installedApps, remoteApps, updates, settings, processes }
 
+/// Represents a non-empty category section with its alphabetically sorted apps.
+class AppCategoryGroup<T> {
+  final String category;
+  final List<T> apps;
+
+  const AppCategoryGroup({required this.category, required this.apps});
+}
+
 class HomeState extends ChangeNotifier {
   // --- State Variables ---
   List<FlatpakApp> flatpakInstalledApps = [];
@@ -40,7 +48,7 @@ class HomeState extends ChangeNotifier {
   String? selectedAppId;
   String searchQuery = '';
   String selectedCategory = 'All';
-  String sortBy = 'Alphabet'; // 'Alphabet', 'Date', 'Size'
+  String sortBy = 'Alphabet'; // 'Alphabet', 'Date', 'Size', 'Category'
   bool isAscending = true;
   final AppLogger appLogger = AppLogger();
 
@@ -117,6 +125,9 @@ class HomeState extends ChangeNotifier {
     if (!availableCategories.contains(selectedCategory)) {
       selectedCategory = 'All';
     }
+    if (!canSortByCategory && sortBy == 'Category') {
+      sortBy = 'Alphabet';
+    }
     notifyListeners();
   }
 
@@ -136,6 +147,9 @@ class HomeState extends ChangeNotifier {
 
   void setCategory(String category) {
     selectedCategory = category;
+    if (!canSortByCategory && sortBy == 'Category') {
+      sortBy = 'Alphabet';
+    }
     if (selectedAppId != null && !filteredApps.any((a) => a.uniqueId == selectedAppId)) {
       selectedAppId = null;
     }
@@ -143,6 +157,7 @@ class HomeState extends ChangeNotifier {
   }
 
   void setSort(String sort) {
+    if (sort == 'Category' && !canSortByCategory) return;
     sortBy = sort;
     notifyListeners();
   }
@@ -760,6 +775,16 @@ class HomeState extends ChangeNotifier {
     return ['All', 'All (show uncategorized)', ...list];
   }
 
+  /// Whether sorting by category is currently permitted (only when viewing all categories).
+  bool get canSortByCategory => selectedCategory == 'All' || selectedCategory == 'All (show uncategorized)';
+
+  /// Whether apps should currently be rendered grouped by category.
+  bool get isCategorySortActive => sortBy == 'Category' && canSortByCategory;
+
+  /// Sort options shown in the Installed and Remote toolbars.
+  List<String> get availableSortOptions =>
+      canSortByCategory ? const ['Alphabet', 'Date', 'Size', 'Category'] : const ['Alphabet', 'Date', 'Size'];
+
   List<FlatpakApp> get filteredApps {
     List<FlatpakApp> list = flatpakInstalledApps.where((app) {
       final matchesSearch =
@@ -772,7 +797,7 @@ class HomeState extends ChangeNotifier {
 
       bool matchesCategory = false;
       if (selectedCategory == 'All') {
-        matchesCategory = !app.categories.contains('Uncategorized');
+        matchesCategory = app.categories.isNotEmpty && !app.categories.contains('Uncategorized');
       } else if (selectedCategory == 'All (show uncategorized)') {
         matchesCategory = true;
       } else {
@@ -804,6 +829,16 @@ class HomeState extends ChangeNotifier {
     });
 
     return list;
+  }
+
+  /// Installed apps grouped by category (non-empty categories only, items sorted A-Z inside each category).
+  List<AppCategoryGroup<FlatpakApp>> get groupedInstalledApps {
+    return _groupAppsByCategory<FlatpakApp>(
+      filteredApps,
+      getCategories: (app) => app.categories,
+      getName: (app) => app.name,
+      getId: (app) => app.uniqueId,
+    );
   }
 
   List<FlatpakApp> get filteredUpdates {
@@ -872,6 +907,56 @@ class HomeState extends ChangeNotifier {
     });
 
     return list;
+  }
+
+  /// Remote apps grouped by category (non-empty categories only, items sorted A-Z inside each category).
+  List<AppCategoryGroup<FlatpakRemoteApp>> get groupedRemoteApps {
+    return _groupAppsByCategory<FlatpakRemoteApp>(
+      filteredRemoteApps,
+      getCategories: (app) => app.categories,
+      getName: (app) => app.name,
+      getId: (app) => app.flatpakAppId,
+    );
+  }
+
+  List<AppCategoryGroup<T>> _groupAppsByCategory<T>(
+    List<T> apps, {
+    required List<String> Function(T) getCategories,
+    required String Function(T) getName,
+    required String Function(T) getId,
+  }) {
+    final Map<String, List<T>> grouped = {};
+    for (final app in apps) {
+      final categories = getCategories(app).map((c) => c.trim()).where((c) => c.isNotEmpty).toSet();
+      if (categories.isEmpty) {
+        grouped.putIfAbsent('Uncategorized', () => <T>[]).add(app);
+      } else {
+        for (final category in categories) {
+          grouped.putIfAbsent(category, () => <T>[]).add(app);
+        }
+      }
+    }
+
+    final namedCategories = grouped.keys.where((c) => c != 'Uncategorized').toList()
+      ..sort((a, b) {
+        final cmp = a.toLowerCase().compareTo(b.toLowerCase());
+        return isAscending ? cmp : -cmp;
+      });
+
+    final orderedCategories = [
+      ...namedCategories,
+      if (grouped.containsKey('Uncategorized')) 'Uncategorized',
+    ];
+
+    return orderedCategories.map((category) {
+      final categoryApps = grouped[category]!
+        ..sort((a, b) {
+          final nameCmp = getName(a).toLowerCase().compareTo(getName(b).toLowerCase());
+          if (nameCmp != 0) return nameCmp;
+          return getId(a).compareTo(getId(b));
+        });
+      return AppCategoryGroup<T>(category: category, apps: categoryApps);
+    }).toList();
   }
 
   // Helper to parse "10.5 MB" or "1.2 GB" for sorting
