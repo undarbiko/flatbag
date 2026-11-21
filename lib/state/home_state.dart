@@ -850,11 +850,23 @@ class HomeState extends ChangeNotifier {
     }).toList();
 
     list.sort((a, b) {
-      int result = a.name.toLowerCase().compareTo(b.name.toLowerCase());
-      if (sortBy == 'Size') {
-        final sizeA = a.size ?? '';
-        final sizeB = b.size ?? '';
-        result = _compareSizes(sizeA, sizeB);
+      int result;
+      switch (sortBy) {
+        case 'Date':
+          result = (a.currentReleaseDate ?? DateTime(0)).compareTo(b.currentReleaseDate ?? DateTime(0));
+          break;
+        case 'Size':
+          result = _compareSizes(a.size ?? '', b.size ?? '');
+          break;
+        case 'Alphabet':
+        default:
+          result = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      }
+      if (result == 0 && sortBy != 'Alphabet') {
+        result = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        if (!isAscending) {
+          result = -result;
+        }
       }
       return isAscending ? result : -result;
     });

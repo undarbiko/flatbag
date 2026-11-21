@@ -41,6 +41,11 @@ class RemoteAppsView extends StatelessWidget {
   }
 }
 
+String? _formatReleaseDate(DateTime? date) {
+  if (date == null) return null;
+  return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+}
+
 /// Renders remote applications as a vertical list of tiles.
 class _RemoteListView extends StatelessWidget {
   const _RemoteListView({required this.state});
@@ -58,19 +63,8 @@ class _RemoteListView extends StatelessWidget {
         final isSelected = state.selectedAppId == app.flatpakAppId;
         final bool hasDetails = app.summary.isNotEmpty;
         final String? size = app.size;
-
-        final rawData = state.getRemoteAppCache(app.flatpakAppId);
-        String? dateStr;
-        String? version;
-        if (rawData != null) {
-          if (rawData['currentReleaseDate'] != null) {
-            try {
-              final date = DateTime.parse(rawData['currentReleaseDate']);
-              dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-            } catch (_) {}
-          }
-          version = rawData['currentReleaseVersion'];
-        }
+        final String? dateStr = _formatReleaseDate(app.currentReleaseDate);
+        final String? version = app.currentReleaseVersion;
 
         return Card(
           color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
@@ -180,11 +174,7 @@ class _RemoteIconsView extends StatelessWidget {
       itemBuilder: (context, index) {
         final app = apps[index];
         final isSelected = state.selectedAppId == app.flatpakAppId;
-        final rawData = state.getRemoteAppCache(app.flatpakAppId);
-        String? version;
-        if (rawData != null) {
-          version = rawData['currentReleaseVersion'];
-        }
+        final String? version = app.currentReleaseVersion;
 
         return InkWell(
           onTap: () => state.selectApp(isSelected ? null : app.flatpakAppId),
@@ -302,19 +292,8 @@ class _RemoteGridView extends StatelessWidget {
         final isSelected = state.selectedAppId == app.flatpakAppId;
         final bool hasDetails = app.summary.isNotEmpty;
         final String? size = app.size;
-
-        final rawData = state.getRemoteAppCache(app.flatpakAppId);
-        String? dateStr;
-        String? version;
-        if (rawData != null) {
-          if (rawData['currentReleaseDate'] != null) {
-            try {
-              final date = DateTime.parse(rawData['currentReleaseDate']);
-              dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-            } catch (_) {}
-          }
-          version = rawData['currentReleaseVersion'];
-        }
+        final String? dateStr = _formatReleaseDate(app.currentReleaseDate);
+        final String? version = app.currentReleaseVersion;
 
         return Card(
           elevation: isSelected ? 4 : 1,
