@@ -37,6 +37,12 @@ class SettingsView extends StatelessWidget {
                   value: state.draftSettings.autoCheckUpdates,
                   onChanged: (value) => state.updateDraftSettings(autoCheckUpdates: value),
                 ),
+                _SettingsCheckboxRow(
+                  title: 'Perform Main Action on Double-Click',
+                  subtitle: 'Run installed apps or install remote apps when double-clicking an item.',
+                  value: state.draftSettings.doubleClickMainAction,
+                  onChanged: (value) => state.updateDraftSettings(doubleClickMainAction: value),
+                ),
                 _SettingsDropdownRow<String>(
                   title: 'Default Installation Scope',
                   subtitle: 'Select the default scope when installing new applications.',

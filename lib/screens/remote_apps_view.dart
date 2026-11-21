@@ -8,8 +8,9 @@ import 'category_section_header.dart';
 /// The main view responsible for rendering the list, grid, or icon layout of remote applications.
 class RemoteAppsView extends StatelessWidget {
   final HomeState state;
+  final ValueChanged<FlatpakRemoteApp>? onAppMainAction;
 
-  const RemoteAppsView({super.key, required this.state});
+  const RemoteAppsView({super.key, required this.state, this.onAppMainAction});
 
   @override
   Widget build(BuildContext context) {
@@ -33,14 +34,14 @@ class RemoteAppsView extends StatelessWidget {
     }
 
     if (state.appsViewType == 2) {
-      return _RemoteIconsView(state: state);
+      return _RemoteIconsView(state: state, onAppMainAction: onAppMainAction);
     }
 
     if (state.appsViewType == 1) {
-      return _RemoteGridView(state: state);
+      return _RemoteGridView(state: state, onAppMainAction: onAppMainAction);
     }
 
-    return _RemoteListView(state: state);
+    return _RemoteListView(state: state, onAppMainAction: onAppMainAction);
   }
 }
 
@@ -75,9 +76,10 @@ Color? _resolveItemBackgroundColor(
 
 /// Renders remote applications as a vertical list of tiles.
 class _RemoteListView extends StatelessWidget {
-  const _RemoteListView({required this.state});
+  const _RemoteListView({required this.state, this.onAppMainAction});
 
   final HomeState state;
+  final ValueChanged<FlatpakRemoteApp>? onAppMainAction;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +92,11 @@ class _RemoteListView extends StatelessWidget {
             SliverToBoxAdapter(child: CategorySectionHeader(category: group.category, count: group.apps.length)),
             SliverList.builder(
               itemCount: group.apps.length,
-              itemBuilder: (context, index) => _RemoteListItem(state: state, app: group.apps[index]),
+              itemBuilder: (context, index) => _RemoteListItem(
+                state: state,
+                app: group.apps[index],
+                onAppMainAction: onAppMainAction,
+              ),
             ),
           ],
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -102,16 +108,17 @@ class _RemoteListView extends StatelessWidget {
     return ListView.builder(
       controller: state.scrollController,
       itemCount: apps.length,
-      itemBuilder: (context, index) => _RemoteListItem(state: state, app: apps[index]),
+      itemBuilder: (context, index) => _RemoteListItem(state: state, app: apps[index], onAppMainAction: onAppMainAction),
     );
   }
 }
 
 class _RemoteListItem extends StatelessWidget {
-  const _RemoteListItem({required this.state, required this.app});
+  const _RemoteListItem({required this.state, required this.app, this.onAppMainAction});
 
   final HomeState state;
   final FlatpakRemoteApp app;
+  final ValueChanged<FlatpakRemoteApp>? onAppMainAction;
 
   @override
   Widget build(BuildContext context) {
@@ -195,7 +202,11 @@ class _RemoteListItem extends StatelessWidget {
                 if (dateStr != null && state.settings.listViewShowDate) Text(dateStr, style: const TextStyle(fontSize: 11, color: Colors.grey)),
               ],
             ),
-            onTap: () => state.selectApp(app.flatpakAppId),
+            onTap: () {
+              if (state.handleItemTap(app.flatpakAppId, toggleSelectionWhenDisabled: false)) {
+                onAppMainAction?.call(app);
+              }
+            },
           ),
           if (app.isInstalled) const Positioned(bottom: 4, left: 4, child: Icon(Icons.check_circle, size: 16, color: Colors.green)),
         ],
@@ -206,9 +217,10 @@ class _RemoteListItem extends StatelessWidget {
 
 /// Renders remote applications as a grid of compact icons.
 class _RemoteIconsView extends StatelessWidget {
-  const _RemoteIconsView({required this.state});
+  const _RemoteIconsView({required this.state, this.onAppMainAction});
 
   final HomeState state;
+  final ValueChanged<FlatpakRemoteApp>? onAppMainAction;
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +244,12 @@ class _RemoteIconsView extends StatelessWidget {
               sliver: SliverGrid.builder(
                 gridDelegate: gridDelegate,
                 itemCount: group.apps.length,
-                itemBuilder: (context, index) => _RemoteIconItem(state: state, app: group.apps[index], textScale: textScale),
+                itemBuilder: (context, index) => _RemoteIconItem(
+                  state: state,
+                  app: group.apps[index],
+                  textScale: textScale,
+                  onAppMainAction: onAppMainAction,
+                ),
               ),
             ),
           ],
@@ -247,17 +264,23 @@ class _RemoteIconsView extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       gridDelegate: gridDelegate,
       itemCount: apps.length,
-      itemBuilder: (context, index) => _RemoteIconItem(state: state, app: apps[index], textScale: textScale),
+      itemBuilder: (context, index) => _RemoteIconItem(
+        state: state,
+        app: apps[index],
+        textScale: textScale,
+        onAppMainAction: onAppMainAction,
+      ),
     );
   }
 }
 
 class _RemoteIconItem extends StatelessWidget {
-  const _RemoteIconItem({required this.state, required this.app, required this.textScale});
+  const _RemoteIconItem({required this.state, required this.app, required this.textScale, this.onAppMainAction});
 
   final HomeState state;
   final FlatpakRemoteApp app;
   final double textScale;
+  final ValueChanged<FlatpakRemoteApp>? onAppMainAction;
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +295,11 @@ class _RemoteIconItem extends StatelessWidget {
     );
 
     return InkWell(
-      onTap: () => state.selectApp(isSelected ? null : app.flatpakAppId),
+      onTap: () {
+        if (state.handleItemTap(app.flatpakAppId)) {
+          onAppMainAction?.call(app);
+        }
+      },
       borderRadius: BorderRadius.circular(8.0),
       child: Ink(
         decoration: backgroundColor != null
@@ -362,9 +389,10 @@ class _RemoteIconItem extends StatelessWidget {
 
 /// Renders remote applications as a grid of detailed cards.
 class _RemoteGridView extends StatelessWidget {
-  const _RemoteGridView({required this.state});
+  const _RemoteGridView({required this.state, this.onAppMainAction});
 
   final HomeState state;
+  final ValueChanged<FlatpakRemoteApp>? onAppMainAction;
 
   @override
   Widget build(BuildContext context) {
@@ -388,7 +416,11 @@ class _RemoteGridView extends StatelessWidget {
               sliver: SliverGrid.builder(
                 gridDelegate: gridDelegate,
                 itemCount: group.apps.length,
-                itemBuilder: (context, index) => _RemoteGridCard(state: state, app: group.apps[index]),
+                itemBuilder: (context, index) => _RemoteGridCard(
+                  state: state,
+                  app: group.apps[index],
+                  onAppMainAction: onAppMainAction,
+                ),
               ),
             ),
           ],
@@ -403,16 +435,17 @@ class _RemoteGridView extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       gridDelegate: gridDelegate,
       itemCount: apps.length,
-      itemBuilder: (context, index) => _RemoteGridCard(state: state, app: apps[index]),
+      itemBuilder: (context, index) => _RemoteGridCard(state: state, app: apps[index], onAppMainAction: onAppMainAction),
     );
   }
 }
 
 class _RemoteGridCard extends StatelessWidget {
-  const _RemoteGridCard({required this.state, required this.app});
+  const _RemoteGridCard({required this.state, required this.app, this.onAppMainAction});
 
   final HomeState state;
   final FlatpakRemoteApp app;
+  final ValueChanged<FlatpakRemoteApp>? onAppMainAction;
 
   @override
   Widget build(BuildContext context) {
@@ -432,7 +465,11 @@ class _RemoteGridCard extends StatelessWidget {
             : const BorderSide(color: Color.fromARGB(100, 166, 166, 166), width: 1.0),
       ),
       child: InkWell(
-        onTap: () => state.selectApp(isSelected ? null : app.flatpakAppId),
+        onTap: () {
+          if (state.handleItemTap(app.flatpakAppId)) {
+            onAppMainAction?.call(app);
+          }
+        },
         borderRadius: BorderRadius.circular(12),
         child: Stack(
           children: [

@@ -7,7 +7,9 @@ import 'category_section_header.dart';
 /// The main view responsible for rendering the list, grid, or icon layout of installed applications.
 class InstalledAppsView extends StatelessWidget {
   final HomeState state;
-  const InstalledAppsView({super.key, required this.state});
+  final ValueChanged<FlatpakApp>? onAppMainAction;
+
+  const InstalledAppsView({super.key, required this.state, this.onAppMainAction});
 
   @override
   Widget build(BuildContext context) {
@@ -26,20 +28,22 @@ class InstalledAppsView extends StatelessWidget {
 
     // Ensure the layout order matches remote_apps_view.dart for visual consistency across tabs.
     if (state.appsViewType == 2) {
-      return _InstalledAppIconView(state: state);
+      return _InstalledAppIconView(state: state, onAppMainAction: onAppMainAction);
     }
 
     if (state.appsViewType == 1) {
-      return _InstalledAppGridView(state: state);
+      return _InstalledAppGridView(state: state, onAppMainAction: onAppMainAction);
     }
 
-    return _InstalledAppListView(state: state);
+    return _InstalledAppListView(state: state, onAppMainAction: onAppMainAction);
   }
 }
 
 class _InstalledAppListView extends StatelessWidget {
   final HomeState state;
-  const _InstalledAppListView({required this.state});
+  final ValueChanged<FlatpakApp>? onAppMainAction;
+
+  const _InstalledAppListView({required this.state, this.onAppMainAction});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +56,11 @@ class _InstalledAppListView extends StatelessWidget {
             SliverToBoxAdapter(child: CategorySectionHeader(category: group.category, count: group.apps.length)),
             SliverList.builder(
               itemCount: group.apps.length,
-              itemBuilder: (context, index) => _InstalledAppListItem(state: state, app: group.apps[index]),
+              itemBuilder: (context, index) => _InstalledAppListItem(
+                state: state,
+                app: group.apps[index],
+                onAppMainAction: onAppMainAction,
+              ),
             ),
           ],
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -65,7 +73,7 @@ class _InstalledAppListView extends StatelessWidget {
       // Attach the controller to synchronize scrolling with the main window's scrollbar.
       controller: state.scrollController,
       itemCount: apps.length,
-      itemBuilder: (context, index) => _InstalledAppListItem(state: state, app: apps[index]),
+      itemBuilder: (context, index) => _InstalledAppListItem(state: state, app: apps[index], onAppMainAction: onAppMainAction),
     );
   }
 }
@@ -73,8 +81,9 @@ class _InstalledAppListView extends StatelessWidget {
 class _InstalledAppListItem extends StatelessWidget {
   final HomeState state;
   final FlatpakApp app;
+  final ValueChanged<FlatpakApp>? onAppMainAction;
 
-  const _InstalledAppListItem({required this.state, required this.app});
+  const _InstalledAppListItem({required this.state, required this.app, this.onAppMainAction});
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +104,9 @@ class _InstalledAppListItem extends StatelessWidget {
       child: ListTile(
         selected: isSelected,
         onTap: () {
-          state.selectApp(isSelected ? null : app.uniqueId);
+          if (state.handleItemTap(app.uniqueId)) {
+            onAppMainAction?.call(app);
+          }
         },
         leading: AppIcon(iconPath: app.iconPath, size: 36),
         title: Row(
@@ -149,7 +160,9 @@ class _InstalledAppListItem extends StatelessWidget {
 
 class _InstalledAppGridView extends StatelessWidget {
   final HomeState state;
-  const _InstalledAppGridView({required this.state});
+  final ValueChanged<FlatpakApp>? onAppMainAction;
+
+  const _InstalledAppGridView({required this.state, this.onAppMainAction});
 
   @override
   Widget build(BuildContext context) {
@@ -173,7 +186,11 @@ class _InstalledAppGridView extends StatelessWidget {
               sliver: SliverGrid.builder(
                 gridDelegate: gridDelegate,
                 itemCount: group.apps.length,
-                itemBuilder: (context, index) => _InstalledAppGridCard(state: state, app: group.apps[index]),
+                itemBuilder: (context, index) => _InstalledAppGridCard(
+                  state: state,
+                  app: group.apps[index],
+                  onAppMainAction: onAppMainAction,
+                ),
               ),
             ),
           ],
@@ -188,7 +205,7 @@ class _InstalledAppGridView extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       gridDelegate: gridDelegate,
       itemCount: apps.length,
-      itemBuilder: (context, index) => _InstalledAppGridCard(state: state, app: apps[index]),
+      itemBuilder: (context, index) => _InstalledAppGridCard(state: state, app: apps[index], onAppMainAction: onAppMainAction),
     );
   }
 }
@@ -196,8 +213,9 @@ class _InstalledAppGridView extends StatelessWidget {
 class _InstalledAppGridCard extends StatelessWidget {
   final HomeState state;
   final FlatpakApp app;
+  final ValueChanged<FlatpakApp>? onAppMainAction;
 
-  const _InstalledAppGridCard({required this.state, required this.app});
+  const _InstalledAppGridCard({required this.state, required this.app, this.onAppMainAction});
 
   @override
   Widget build(BuildContext context) {
@@ -217,7 +235,9 @@ class _InstalledAppGridCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          state.selectApp(isSelected ? null : app.uniqueId);
+          if (state.handleItemTap(app.uniqueId)) {
+            onAppMainAction?.call(app);
+          }
         },
         borderRadius: BorderRadius.circular(12.0),
         child: Padding(
@@ -300,7 +320,9 @@ class _InstalledAppGridCard extends StatelessWidget {
 
 class _InstalledAppIconView extends StatelessWidget {
   final HomeState state;
-  const _InstalledAppIconView({required this.state});
+  final ValueChanged<FlatpakApp>? onAppMainAction;
+
+  const _InstalledAppIconView({required this.state, this.onAppMainAction});
 
   @override
   Widget build(BuildContext context) {
@@ -324,7 +346,12 @@ class _InstalledAppIconView extends StatelessWidget {
               sliver: SliverGrid.builder(
                 gridDelegate: gridDelegate,
                 itemCount: group.apps.length,
-                itemBuilder: (context, index) => _InstalledAppIconItem(state: state, app: group.apps[index], textScale: textScale),
+                itemBuilder: (context, index) => _InstalledAppIconItem(
+                  state: state,
+                  app: group.apps[index],
+                  textScale: textScale,
+                  onAppMainAction: onAppMainAction,
+                ),
               ),
             ),
           ],
@@ -339,7 +366,12 @@ class _InstalledAppIconView extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       gridDelegate: gridDelegate,
       itemCount: apps.length,
-      itemBuilder: (context, index) => _InstalledAppIconItem(state: state, app: apps[index], textScale: textScale),
+      itemBuilder: (context, index) => _InstalledAppIconItem(
+        state: state,
+        app: apps[index],
+        textScale: textScale,
+        onAppMainAction: onAppMainAction,
+      ),
     );
   }
 }
@@ -348,15 +380,20 @@ class _InstalledAppIconItem extends StatelessWidget {
   final HomeState state;
   final FlatpakApp app;
   final double textScale;
+  final ValueChanged<FlatpakApp>? onAppMainAction;
 
-  const _InstalledAppIconItem({required this.state, required this.app, required this.textScale});
+  const _InstalledAppIconItem({required this.state, required this.app, required this.textScale, this.onAppMainAction});
 
   @override
   Widget build(BuildContext context) {
     final bool isSelected = state.selectedAppId == app.uniqueId;
 
     return InkWell(
-      onTap: () => state.selectApp(isSelected ? null : app.uniqueId),
+      onTap: () {
+        if (state.handleItemTap(app.uniqueId)) {
+          onAppMainAction?.call(app);
+        }
+      },
       borderRadius: BorderRadius.circular(8.0),
       child: Container(
         decoration: isSelected

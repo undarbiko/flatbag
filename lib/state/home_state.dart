@@ -128,6 +128,8 @@ class HomeState extends ChangeNotifier {
     if (!canSortByCategory && sortBy == 'Category') {
       sortBy = 'Alphabet';
     }
+    _lastTappedAppId = null;
+    _lastTapTime = null;
     notifyListeners();
   }
 
@@ -167,12 +169,57 @@ class HomeState extends ChangeNotifier {
     notifyListeners();
   }
 
+  static const Duration doubleClickWindow = Duration(milliseconds: 300);
+  String? _lastTappedAppId;
+  DateTime? _lastTapTime;
+
   void selectApp(String? appId) {
     selectedAppId = appId;
     if (appId != null) {
       _fetchFlathubDetails(appId);
     }
     notifyListeners();
+  }
+
+  /// Handles an item tap immediately with zero gesture-arena double-tap delay.
+  /// Returns true when the tap qualifies as a double-click (and the setting is enabled),
+  /// keeping the item selected so the caller can execute its main action.
+  bool handleItemTap(
+    String appId, {
+    bool toggleSelectionWhenDisabled = true,
+    DateTime? now,
+  }) {
+    final isAlreadySelected = selectedAppId == appId;
+
+    if (!settings.doubleClickMainAction) {
+      _lastTappedAppId = null;
+      _lastTapTime = null;
+      selectApp(toggleSelectionWhenDisabled && isAlreadySelected ? null : appId);
+      return false;
+    }
+
+    final tapTime = now ?? DateTime.now();
+    final isDoubleClick =
+        _lastTappedAppId == appId &&
+        _lastTapTime != null &&
+        tapTime.difference(_lastTapTime!) <= doubleClickWindow;
+
+    if (isDoubleClick) {
+      // Clear tracking so a rapid triple-click does not fire the main action twice.
+      _lastTappedAppId = null;
+      _lastTapTime = null;
+      if (!isAlreadySelected) {
+        selectApp(appId);
+      }
+      return true;
+    }
+
+    _lastTappedAppId = appId;
+    _lastTapTime = tapTime;
+    if (!isAlreadySelected) {
+      selectApp(appId);
+    }
+    return false;
   }
 
   void selectTask(String? taskId) {
@@ -210,6 +257,7 @@ class HomeState extends ChangeNotifier {
   void updateDraftSettings({
     bool? persistWindowSize,
     bool? autoCheckUpdates,
+    bool? doubleClickMainAction,
     String? defaultInstallScope,
     String? themeMode,
     int? accentColor,
@@ -232,6 +280,7 @@ class HomeState extends ChangeNotifier {
   }) {
     if (persistWindowSize != null) draftSettings.persistWindowSize = persistWindowSize;
     if (autoCheckUpdates != null) draftSettings.autoCheckUpdates = autoCheckUpdates;
+    if (doubleClickMainAction != null) draftSettings.doubleClickMainAction = doubleClickMainAction;
     if (defaultInstallScope != null) draftSettings.defaultInstallScope = defaultInstallScope;
     if (themeMode != null) {
       draftSettings.themeMode = themeMode;

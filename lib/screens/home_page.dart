@@ -228,9 +228,18 @@ class _MyHomePageState extends State<MyHomePage> {
       case AppView.messages:
         return MessageView(state: _state);
       case AppView.installedApps:
-        return InstalledAppsView(state: _state);
+        return InstalledAppsView(state: _state, onAppMainAction: _executeApp);
       case AppView.remoteApps:
-        return RemoteAppsView(state: _state);
+        return RemoteAppsView(
+          state: _state,
+          onAppMainAction: (app) {
+            if (app.isInstalled) {
+              _executeRemoteApp(app);
+            } else {
+              _installApp(app, requireConfirmation: true);
+            }
+          },
+        );
       case AppView.updates:
         return UpdatesView(state: _state);
       case AppView.settings:
@@ -270,7 +279,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _installApp(FlatpakRemoteApp app) async {
+  Future<void> _installApp(FlatpakRemoteApp app, {bool requireConfirmation = false}) async {
     bool? isSystem;
 
     if (_state.settings.defaultInstallScope == 'system') {
@@ -293,6 +302,24 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     if (isSystem == null) return;
+
+    // Enforce confirmation when triggered via double-click and a default scope bypassed the scope picker dialog.
+    if (requireConfirmation && _state.settings.defaultInstallScope != 'ask') {
+      if (!mounted) return;
+      final scopeLabel = isSystem ? 'System-wide' : 'Current User';
+      final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Install ${app.name}'),
+          content: Text('Are you sure you want to install ${app.name} ($scopeLabel)?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Install')),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
 
     _state.installApp(app.name, app.flatpakAppId, isSystem);
   }
