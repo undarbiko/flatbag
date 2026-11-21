@@ -108,8 +108,8 @@ class InstalledAppsToolbar extends StatelessWidget {
               style: smallTextStyle.copyWith(color: Colors.black87),
               decoration: compactDecoration.copyWith(labelText: 'Sort By'),
               iconSize: 20,
-              value: state.sortBy,
-              items: ['Alphabet', 'Date', 'Size']
+              value: state.availableSortOptions.contains(state.sortBy) ? state.sortBy : 'Alphabet',
+              items: state.availableSortOptions
                   .map(
                     (s) => DropdownMenuItem(
                       value: s,
